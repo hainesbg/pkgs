@@ -1,0 +1,58 @@
+name: nvidia
+shell: /toolchain/bin/bash
+dependencies:
+  - image: '{{ .TOOLS_IMAGE }}'
+  - stage: kernel
+install:
+  - xz
+  - musl-dev
+  - libelf
+steps:
+  - env:
+      ARCH: {{ if eq .ARCH "aarch64"}}arm64{{ else if eq .ARCH "x86_64" }}x86_64{{ else }}unsupported{{ end }}
+      CARCH: {{ if eq .ARCH "aarch64"}}arm64{{ else if eq .ARCH "x86_64" }}amd64{{ else }}unsupported{{ end }}
+      KARCH: {{ if eq .ARCH "aarch64"}}ARM64{{ else if eq .ARCH "x86_64" }}X86_64{{ else }}unsupported{{ end }}
+    sources:
+      - url: https://us.download.nvidia.com/XFree86/Linux-x86_64/495.44/NVIDIA-Linux-x86_64-495.44.run
+        destination: nvidia.run
+        sha256: f1876a67815b160a67ef94e16d1b87550e4c302b327d98daec4d71dd5c7f8a48
+        sha512: bc9054e6028ba172906e6eb9a0b8f5cfc3ae74d57f3e95e0f9057879e3af07a4b19479e80d81e948872bc47bbd674f77f5f81d4debd2e2c3ce45058cd9211802
+      - url: https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
+        destination: sgerrand.rsa.pub
+        sha256: 823b54589c93b02497f1ba4dc622eaef9c813e6b0f0ebbb2f771e32adf9f4ef2
+        sha512: f2b0a7d4393a249cee36ee89753848e60521b2e5f6a2666a490dcc6b6fbe2aacf87752c458bcbec18d56513dfed0dd9f44d6bc01c118ad103c745a9a017cf8cf
+      - url: https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.34-r0/glibc-2.34-r0.apk
+        destination: glibc.apk
+        sha256: 3ef4a8d71777b3ccdd540e18862d688e32aa1c7bc5a1c0170271a43d0e736486
+        sha512: cc29089826994b3b6f28ca4e13032326e0e60495d90d83c5d422f358ec371360edd4bec4407010c10b8e4365864d379c43297fe5c46eec13d23f12505514f3f8
+      - url: https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.34-r0/glibc-bin-2.34-r0.apk
+        destination: glibc-bin.apk
+        sha256: cc631135f481644ce74b28f6e37ceea848de06389d669182a012a9ca1ac5a95a
+        sha512: 80065844aa77de85f6a9cebe030e3c4c83087e1983f59f9e46c3463456039edfda77a1d368b8dc7ac519db28cff7f10f700b9b14915b8a6db9afa22aa16b7578
+    prepare:
+      - cp sgerrand.rsa.pub /etc/apk/keys
+      - apk add glibc.apk glibc-bin.apk
+      - sh nvidia.run --extract-only
+      - mkdir -p /rootfs/usr/src /rootfs/lib/modules
+      - cp -a /lib/modules/$(basename /usr/src/linux* | cut -d- -f2-) /rootfs/lib/modules
+      - cp -a /usr/src/linux-* /rootfs/usr/src
+    build:
+      - |
+        PATH=/usr/glibc-compat/sbin:/usr/glibc-compat/bin:/toolchain/sbin:/toolchain/bin:$PATH LD_LIBRARY_PATH=/usr/glibc-compat/lib ./NVIDIA-Linux-x86_64-495.44/nvidia-installer \
+        --compat32-prefix=/rootfs/usr \
+        --documentation-prefix=/rootfs/usr \
+        --expert \
+        --kernel-install-path=/rootfs/lib/modules/$(basename /usr/src/linux* | cut -d- -f2-)/video \
+        --kernel-module-source-prefix=/rootfs/usr/src \
+        --kernel-name=$(basename /usr/src/linux* | cut -d- -f2-) \
+        --kernel-source-path=$(ls -d /usr/src/linux*) \
+        --no-nvidia-modprobe \
+        --no-questions \
+        --opengl-prefix=/rootfs/usr \
+        --ui=none \
+        --utility-prefix=/rootfs/usr \
+        --wine-prefix=/rootfs/usr \
+        --x-prefix=/rootfs/usr
+finalize:
+  - from: /rootfs
+    to: /

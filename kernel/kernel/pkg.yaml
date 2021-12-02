@@ -15,8 +15,8 @@ steps:
         cp -v /pkg/config-${CARCH} .config
 
         patch -p0 < /pkg/patches/sign-file.patch
-      - |
-        python3 /toolchain/kconfig-hardened-check/bin/kconfig-hardened-check -c .config -p ${KARCH} -m json | python3 /pkg/scripts/filter-hardened-check.py
+      #- |
+        #python3 /toolchain/kconfig-hardened-check/bin/kconfig-hardened-check -c .config -p ${KARCH} -m json | python3 /pkg/scripts/filter-hardened-check.py
     build:
       - |
         make -j $(nproc)
@@ -51,9 +51,13 @@ steps:
 
         export KERNELRELEASE=$(cat include/config/kernel.release)
         make -j $(nproc) modules_install DEPMOD=/toolchain/bin/depmod INSTALL_MOD_PATH=/rootfs
+        make -j $(nproc) headers_install DEPMOD=/toolchain/bin/depmod INSTALL_HDR_PATH=/rootfs/usr
         depmod -b /rootfs $KERNELRELEASE
         unlink /rootfs/lib/modules/$KERNELRELEASE/build
         unlink /rootfs/lib/modules/$KERNELRELEASE/source
+        make clean
+        mkdir -p /rootfs/usr/src/linux-$KERNELRELEASE
+        cp -a . /rootfs/usr/src/linux-$KERNELRELEASE
 finalize:
   - from: /rootfs
     to: /

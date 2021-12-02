@@ -1,9 +1,9 @@
-# syntax = ghcr.io/talos-systems/bldr:v0.2.0-alpha.6-frontend
+# syntax = ghcr.io/hainesbg/bldr:v0.2.0-alpha.6-2-ge999d96-frontend
 
 format: v1alpha2
 
 vars:
-  TOOLS_IMAGE: ghcr.io/talos-systems/tools:v0.9.0-alpha.0-6-gaacbc5b
+  TOOLS_IMAGE: ghcr.io/hainesbg/tools:v0.9.0-alpha.0-11-g9f29da5
 
 labels:
   org.opencontainers.image.source: https://github.com/talos-systems/pkgs

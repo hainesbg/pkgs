@@ -1,14 +1,14 @@
 REGISTRY ?= ghcr.io
-USERNAME ?= talos-systems
+USERNAME ?= hainesbg
 SHA ?= $(shell git describe --match=none --always --abbrev=8 --dirty)
 TAG ?= $(shell git describe --tag --always --dirty)
 BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 REGISTRY_AND_USERNAME := $(REGISTRY)/$(USERNAME)
 
 BUILD := docker buildx build
-PLATFORM ?= linux/amd64,linux/arm64
+PLATFORM ?= linux/amd64
 PROGRESS ?= auto
-PUSH ?= false
+PUSH ?= true
 COMMON_ARGS := --file=Pkgfile
 COMMON_ARGS += --progress=$(PROGRESS)
 COMMON_ARGS += --platform=$(PLATFORM)
@@ -19,7 +19,7 @@ COMMON_ARGS += --build-arg=https_proxy=$(https_proxy)
 empty :=
 space = $(empty) $(empty)
 
-TARGETS =  ca-certificates  cni  containerd cryptsetup dosfstools  eudev  fhs flannel-cni grub ipmitool  iptables ipxe kernel  kmod  libaio libjson-c liblzma libpopt libressl  libseccomp  linux-firmware lvm2  musl  open-iscsi  open-isns raspberrypi-firmware runc  socat  syslinux u-boot  util-linux  xfsprogs
+TARGETS =  ca-certificates  cni  containerd cryptsetup dosfstools  eudev  fhs  grub ipmitool  iptables ipxe kernel  kmod  libaio libjson-c liblzma libpopt libressl  libseccomp  linux-firmware lvm2  musl  open-iscsi  open-isns raspberrypi-firmware runc  socat  syslinux u-boot  util-linux  xfsprogs nvidia
 
 all: $(TARGETS) ## Builds all known pkgs.
 
