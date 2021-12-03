@@ -3,7 +3,7 @@
 format: v1alpha2
 
 vars:
-  TOOLS_IMAGE: ghcr.io/hainesbg/tools:v0.9.0-alpha.0-11-g9f29da5
+  TOOLS_IMAGE: ghcr.io/hainesbg/tools:v0.9.0-alpha.0-13-g3a5218c
 
 labels:
   org.opencontainers.image.source: https://github.com/talos-systems/pkgs
